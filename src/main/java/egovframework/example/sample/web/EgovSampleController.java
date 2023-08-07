@@ -16,14 +16,16 @@
 package egovframework.example.sample.web;
 
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
 import org.egovframe.rte.fdl.property.EgovPropertyService;
+import org.egovframe.rte.psl.dataaccess.util.EgovMap;
 import org.egovframe.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springmodules.validation.commons.DefaultBeanValidator;
 
+import egovframework.example.cmmn.CommonRedisService;
 import egovframework.example.sample.TestVO;
 import egovframework.example.sample.service.EgovSampleService;
 import egovframework.example.sample.service.SampleDefaultVO;
@@ -60,6 +63,8 @@ import egovframework.example.sample.service.SampleVO;
 @Controller
 public class EgovSampleController {
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	
 	/** EgovSampleService */
 	@Resource(name = "sampleService")
 	private EgovSampleService sampleService;
@@ -71,6 +76,10 @@ public class EgovSampleController {
 	/** Validator */
 	@Resource(name = "beanValidator")
 	protected DefaultBeanValidator beanValidator;
+
+	/** redis service */
+	@Resource(name = "commonRedisService")
+	protected CommonRedisService redisService;
 
 	/**
 	 * 글 목록을 조회한다. (pageing)
@@ -237,6 +246,36 @@ public class EgovSampleController {
 		sampleService.deleteSample(sampleVO);
 		status.setComplete();
 		return "forward:/egovSampleList.do";
+	}
+	
+	
+	
+	@RequestMapping("/saveTest.do")
+	public String saveTest(SampleVO sampleVO, @ModelAttribute("searchVO") SampleDefaultVO searchVO, SessionStatus status) throws Exception {
+		logger.debug("saveTest.do");
+		
+		EgovMap map = new EgovMap();
+		map.put("map1", "aaaaaaaaaaaa");
+		map.put("map2", "bbbbbbbbbbbb");
+		
+		redisService.redisAddData("test", map);
+		
+		return "test";
+	}
+	
+	
+	@RequestMapping("/readTest.do")
+	public String readTest(SampleVO sampleVO, @ModelAttribute("searchVO") SampleDefaultVO searchVO, SessionStatus status) throws Exception {
+		logger.debug("readTest.do");
+		
+		
+		EgovMap map = (EgovMap) redisService.redisGetData("test");
+		
+		logger.debug("{{{{{{{{{{{{{{{{{{{{{{{{{");
+		logger.debug( map.toString() );
+		logger.debug("{{{{{{{{{{{{{{{{{{{{{{{{{");
+		
+		return "test";
 	}
 
 }
